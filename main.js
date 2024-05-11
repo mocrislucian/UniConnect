@@ -9,7 +9,7 @@ let peerConnection;
 
 //user
 let token = null;
-let uid = String(Math.floor(Math.random() * 7777777))
+let uid = String(Math.floor(Math.random() * 10000))
 
 //room
 let queryString = window.location.search
@@ -22,8 +22,8 @@ if(!roomid) {
 
 let constraints = { 
     video:{
-        width:{min:1280, ideal:1920, max:1920},
-        height:{min:720, ideal:1080, max:1080},
+        width:{min:640, ideal:1920, max:4096},
+        height:{min:480, ideal:1080, max:2160},
     },
     audio:true
 }
@@ -49,7 +49,7 @@ let init = async () => {
 
     client.on('Message from peer', handleMessageFromPeer)
 
-    localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:false})
+    localStream = await navigator.mediaDevices.getUserMedia(constraints)
     document.getElementById('user1').srcObject = localStream
 }
 
