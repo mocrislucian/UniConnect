@@ -1,24 +1,25 @@
 body {
-    background-color: #2d2d30;
+    background-image: url(img/lobby-background.jpg);
     color: #fff;
 }
 
 #formContainer {
-    width: 100%;
-    max-width: 500px;
+    width: 30%;
+    max-width: 600px;
     border-radius: 10px;
-    background-color: #005cd4;
+    background-color: #d5c4f7;
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    box-shadow: 0px 0px 20px #14197c;
 }
 
 #formContainer-header {
     border-radius: 10px 10px 0 0;
-    padding: 30px;
+    padding: 5px;
     text-align: center;
-    background-color: #005cd4;
+    background-color: #bc9ff5;
     margin: 0;
     font-size: 20px;
     font-size: 300;
@@ -31,9 +32,10 @@ body {
 }
 
 input[type='submit'] {
-    background-color: #00306e;
-    color: #fff;
+    background-color: #14197c;
+    color: #ffffff;
     font-family: calibri;
+    width: 30%;
 }
 
 input {
