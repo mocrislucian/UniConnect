@@ -20,13 +20,15 @@ if(!roomid) {
     window.location = 'lobby.html'
 }
 
-let constraints = { 
+const constraints = { 
     video:{
-        width:{min:640, ideal:1920, max:4096},
-        height:{min:480, ideal:1080, max:2160},
+        width:{min:640, max:4096},
+        height:{min:480, max:2160},
     },
-    audio:true
-}
+    audio:{
+        echoCancellation:true,
+    }
+};
 
 const servers = {
     iceServers:[
@@ -174,6 +176,7 @@ let leave = async () => {
 document.addEventListener('DOMContentLoaded', function() {
     const microphoneButton = document.getElementById('mic-button');
     const cameraButton = document.getElementById('camera-button');
+    const shareScreenButton = document.getElementById('share-button');
 
     if(microphoneButton) {
         microphoneButton.addEventListener('click', MicON)
@@ -182,7 +185,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if(cameraButton) {
         cameraButton.addEventListener('click', CameraON)
     }
+
+    if(shareScreenButton) {
+        shareScreenButton.addEventListener('click', shareScreen)
+    }
 })
+
+function shareScreen() {
+    navigator.mediaDevices.getDisplayMedia({cursor: true}).then(stream => {
+        let screenTrack = stream.getTracks()[0];
+        senders.current.find(sender => sender.track.kind === "video").replaceTrack(screenTrack);
+        screenTrack.onended = function () {
+            senders.current.find(sender => sender.track.kind === "video").replaceTrack(userStream.current.getTracks()[1]);
+        }
+    })
+}
 
 window.addEventListener('beforeleave', leave)
 
