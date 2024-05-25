@@ -1,3 +1,12 @@
+navigator.mediaDevices.getSupportedConstraints();
+navigator.mediaDevices.getUserMedia({
+    audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+    }
+})
+
 let APP_ID = "9aebd21fd5b24c7692b448e0f38df752"
 
 let client;
@@ -155,7 +164,6 @@ let MicON = async () => {
     }
 }
 
-
 let CameraON = async () => {
     let video = localStream.getTracks().find(track => track.kind === 'video')
 
@@ -173,6 +181,7 @@ let leave = async () => {
     await channel.leave()
     await client.logout()
 }
+
 document.addEventListener('DOMContentLoaded', function() {
     const microphoneButton = document.getElementById('mic-button');
     const cameraButton = document.getElementById('camera-button');
@@ -201,6 +210,41 @@ function shareScreen() {
     })
 }
 
+webkitAudioContext = AudioContext;
+
+const audioStream = new (window.AudioContext || window.webkitAudioContext)();
+//audio stream from user
+navigator.mediaDevices.getUserMedia({audio:true, video:false})
+    .then(stream => {
+        //audio source created
+        const src = audioStream.createMediaStreamSource(stream);
+        //gain node created for volume adjustment
+        const gainNode = audioStream.createGain();
+        gainNode.gain.value = 1;
+        //biquad filter for noise
+        const biquadFilter = audioStream.createBiquadFilter();
+        biquadFilter.type = "highpass";
+        gainNode.connect(audioStream.destination);
+        //connect the nodes
+        soure.connect(biquadFilter);
+        biquadFilter.connect(gainNode);
+        gainNode.connect(audioStream.destination);
+        //delay for reducing the echo
+        const delay = audioStream.createDelay();
+        delay.delayTime.value = 0.05;
+        //connect the delay to audio
+        soure.connect(delay);
+        delay.connect(audioStream.destination);
+        //attach the stream to audio
+        const AudioStreamConst = document.createElement('audio');
+        AudioStreamConst.srcObject = stream;;
+        AudioStreamConst.play();
+    })
+    .catch(error => {
+        console.error('Media stream error!', error);
+    });
+
 window.addEventListener('beforeleave', leave)
+
 
 init()
