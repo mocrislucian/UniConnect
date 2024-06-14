@@ -9,16 +9,12 @@ navigator.mediaDevices.getUserMedia({
 
 let APP_ID = "9aebd21fd5b24c7692b448e0f38df752"
 
-let client;
-let channel;
-
-let localStream;
-let remoteStream;
-let peerConnection;
-
 //user
 let token = null;
 let uid = String(Math.floor(Math.random() * 10000))
+
+let client;
+let channel;
 
 //room
 let queryString = window.location.search
@@ -29,15 +25,9 @@ if(!roomid) {
     window.location = 'lobby.html'
 }
 
-const constraints = { 
-    video:{
-        width:{min:640, max:4096},
-        height:{min:480, max:2160},
-    },
-    audio:{
-        echoCancellation:true,
-    }
-};
+let localStream;
+let remoteStream;
+let peerConnection;
 
 const servers = {
     iceServers:[
@@ -47,18 +37,28 @@ const servers = {
     ]
 }
 
-//create the instance for the users that are joining or leaving
+const constraints = { 
+    video:{
+        width:{min:854, max:4096},
+        height:{min:480, max:2160},
+    },
+    audio:{
+        echoCancellation:true,
+    }
+};
+
 let init = async () => {
     client = await AgoraRTM.createInstance(APP_ID)
     await client.login({uid, token})
 
     channel = client.createChannel('roomid')
+    
     await channel.join()
 
-    channel.on('Member joined', handleUserJoined)
-    channel.on('Member left', handleUserLeft)
+    channel.on('Member-joined', handleUserJoined)
+    channel.on('Member-left', handleUserLeft)
 
-    client.on('Message from peer', handleMessageFromPeer)
+    client.on('Message-from-peer', handleMessageFromPeer)
 
     localStream = await navigator.mediaDevices.getUserMedia(constraints)
     document.getElementById('user1').srcObject = localStream
@@ -149,6 +149,11 @@ let addAnswer = async (answer) => {
     }
 }
 
+let leave = async () => {
+    await channel.leave()
+    await client.logout()
+}
+
 let MicON = async () => {
     console.log(localStream);
     let audio = localStream.getTracks().find(track => track.kind === 'audio')
@@ -177,10 +182,7 @@ let CameraON = async () => {
     }
 }
 
-let leave = async () => {
-    await channel.leave()
-    await client.logout()
-}
+window.addEventListener('beforeleave', leave)
 
 document.addEventListener('DOMContentLoaded', function() {
     const microphoneButton = document.getElementById('mic-button');
@@ -203,9 +205,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function shareScreen() {
     navigator.mediaDevices.getDisplayMedia({cursor: true}).then(stream => {
         let screenTrack = stream.getTracks()[0];
-        senders.current.find(sender => sender.track.kind === "video").replaceTrack(screenTrack);
+        senders.current.find(sender => sender.track.kind === 'video').replaceTrack(screenTrack);
         screenTrack.onended = function () {
-            senders.current.find(sender => sender.track.kind === "video").replaceTrack(userStream.current.getTracks()[1]);
+            senders.current.find(sender => sender.track.kind === 'video').replaceTrack(userStream.current.getTracks()[1]);
         }
     })
 }
@@ -213,7 +215,6 @@ function shareScreen() {
 webkitAudioContext = AudioContext;
 
 const audioStream = new (window.AudioContext || window.webkitAudioContext)();
-//audio stream from user
 navigator.mediaDevices.getUserMedia({audio:true, video:false})
     .then(stream => {
         //audio source created
@@ -231,7 +232,7 @@ navigator.mediaDevices.getUserMedia({audio:true, video:false})
         gainNode.connect(audioStream.destination);
         //delay for reducing the echo
         const delay = audioStream.createDelay();
-        delay.delayTime.value = 0.05;
+        delay.delayTime.value = 0.10;
         //connect the delay to audio
         soure.connect(delay);
         delay.connect(audioStream.destination);
@@ -243,8 +244,6 @@ navigator.mediaDevices.getUserMedia({audio:true, video:false})
     .catch(error => {
         console.error('Media stream error!', error);
     });
-
-window.addEventListener('beforeleave', leave)
 
 
 init()
